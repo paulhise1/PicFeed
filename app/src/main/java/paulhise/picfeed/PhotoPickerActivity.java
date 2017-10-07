@@ -1,7 +1,10 @@
 package paulhise.picfeed;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.icu.text.SimpleDateFormat;
+import android.media.Image;
 import android.net.Uri;
 import android.nfc.Tag;
 import android.os.Environment;
@@ -22,6 +25,9 @@ import java.util.Date;
 
 public class PhotoPickerActivity extends AppCompatActivity {
 
+    // assigning TAG for PhotoPickerActivity
+    private static final String TAG = "PhotoPickerActivity";
+
     // assigning a 'request code' int to request_take_photo
     static final int REQUEST_TAKE_PHOTO = 1;
 
@@ -35,6 +41,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
     private Button mPostPicture;
     private Button mSelectFromGallery;
     private ImageView mImageResult;
+    private Bitmap mBitmap;
 
     // onCreate method for PhotoPickerActivity class
     @Override
@@ -46,10 +53,27 @@ public class PhotoPickerActivity extends AppCompatActivity {
         mTakePhoto = (Button) findViewById(R.id.takePhotoButton);
         mPostPicture = (Button) findViewById(R.id.postPictureButton);
         mSelectFromGallery = (Button) findViewById(R.id.selectFromGalleryButton);
-
+        mUserImage = (ImageView) findViewById(R.id.userPicture);
+        mImageResult = (ImageView) findViewById(R.id.photoView);
 
         attachOnClickListener();
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && requestCode == REQUEST_TAKE_PHOTO) {
+           // Image captured and set to the imageview at the bottom on PhotoPickerActivity
+            makeBitmap();
+
+        } else if (resultCode == RESULT_CANCELED) {
+            // User cancelled the image capture
+            Log.d(TAG, "onActivityResult: User canceled request");
+            mInfo.setText(R.string.intent_canceled);
+        } else {
+            Log.d(TAG, "onActivityResult: Image load error");
+            mInfo.setText(R.string.image_load_error);
+        }
     }
 
     private void attachOnClickListener(){
@@ -97,6 +121,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
     // This activates the intent to take a picture with the camera device
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
@@ -117,6 +142,11 @@ public class PhotoPickerActivity extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
+    }
+
+    private void makeBitmap() {
+        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath);
+        mImageResult.setImageBitmap(bitmap);
     }
 
 

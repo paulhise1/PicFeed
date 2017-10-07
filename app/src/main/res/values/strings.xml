@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">PicFeed</string>
     <string name="title_activity_photo_picker">PhotoPickerActivity</string>
+    <string name="image_load_error">Image failed to Load.</string>
+    <string name="intent_canceled">Canceled by user.</string>
+
 </resources>
