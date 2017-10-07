@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PicFeed</string>
+    <string name="title_activity_photo_picker">PhotoPickerActivity</string>
 </resources>
