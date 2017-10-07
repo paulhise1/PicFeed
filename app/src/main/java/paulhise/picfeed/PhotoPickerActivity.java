@@ -3,6 +3,7 @@ package paulhise.picfeed;
 import android.content.Intent;
 import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
@@ -10,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,6 +24,8 @@ public class PhotoPickerActivity extends AppCompatActivity {
 
     // assigning a 'request code' int to request_take_photo
     static final int REQUEST_TAKE_PHOTO = 1;
+
+    static final int REQUEST_IMAGE_CAPTURE = 1;
 
     // assigning member variables to PhotoPickerActivity class
     private String mCurrentPhotoPath;
@@ -43,10 +47,33 @@ public class PhotoPickerActivity extends AppCompatActivity {
         mPostPicture = (Button) findViewById(R.id.postPictureButton);
         mSelectFromGallery = (Button) findViewById(R.id.selectFromGalleryButton);
 
+
         attachOnClickListener();
+
     }
 
     private void attachOnClickListener(){
+        mTakePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                dispatchTakePictureIntent();
+            }
+        });
+
+        mPostPicture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // need logic to give photo to new activity called PhotoFeedActivity
+            }
+        });
+
+        mSelectFromGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // need logic to take mImageResult and put it into phone photo gallery
+            }
+        });
 
     }
 
