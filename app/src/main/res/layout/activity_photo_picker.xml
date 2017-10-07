@@ -6,6 +6,11 @@
     android:layout_height="match_parent">
 
     <TextView
+        android:id="@+id/info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
         android:id="@+id/userName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,7 +37,7 @@
         android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/selectGalleryPictureButton"
+        android:id="@+id/selectFromGalleryButton"
         android:text="Select Gallery Photo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
