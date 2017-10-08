@@ -31,12 +31,6 @@
         android:layout_height="wrap_content" />
 
     <Button
-        android:id="@+id/postPictureButton"
-        android:text="Post Picture"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <Button
         android:id="@+id/selectFromGalleryButton"
         android:text="Select Gallery Photo"
         android:layout_width="match_parent"
@@ -45,9 +39,14 @@
     <ImageView
         android:id="@+id/photoView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true" />
+        android:layout_height="wrap_content" />
 
+    <Button
+        android:id="@+id/postPictureButton"
+        android:text="Post Picture"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 
 </LinearLayout>
 

@@ -42,6 +42,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
     private Button mSelectFromGallery;
     private ImageView mImageResult;
     private Bitmap mBitmap;
+    private Boolean mShowButton;
 
     // onCreate method for PhotoPickerActivity class
     @Override
@@ -51,13 +52,13 @@ public class PhotoPickerActivity extends AppCompatActivity {
 
         mInfo = (TextView) findViewById(R.id.info);
         mTakePhoto = (Button) findViewById(R.id.takePhotoButton);
-        mPostPicture = (Button) findViewById(R.id.postPictureButton);
         mSelectFromGallery = (Button) findViewById(R.id.selectFromGalleryButton);
         mUserImage = (ImageView) findViewById(R.id.userPicture);
         mImageResult = (ImageView) findViewById(R.id.photoView);
+        mPostPicture = (Button) findViewById(R.id.postPictureButton);
+        mShowButton = false;
 
         attachOnClickListener();
-
     }
 
     @Override
@@ -65,11 +66,13 @@ public class PhotoPickerActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && requestCode == REQUEST_TAKE_PHOTO) {
            // Image captured and set to the imageview at the bottom on PhotoPickerActivity
             makeBitmap();
+            changeButtonVisibility(mPostPicture);
 
         } else if (resultCode == RESULT_CANCELED) {
             // User cancelled the image capture
             Log.d(TAG, "onActivityResult: User canceled request");
             mInfo.setText(R.string.intent_canceled);
+
         } else {
             Log.d(TAG, "onActivityResult: Image load error");
             mInfo.setText(R.string.image_load_error);
@@ -149,6 +152,15 @@ public class PhotoPickerActivity extends AppCompatActivity {
         mImageResult.setImageBitmap(bitmap);
     }
 
+    private void changeButtonVisibility(Button button) {
+        if (mShowButton) {
+            button.setVisibility(View.INVISIBLE);
+            mShowButton = false;
+        } else {
+            button.setVisibility(View.VISIBLE);
+            mShowButton = true;
+        }
+    }
 
 
 }
