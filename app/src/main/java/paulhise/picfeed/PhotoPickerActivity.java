@@ -18,7 +18,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -43,6 +42,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
     private ImageView mImageResult;
     private Bitmap mBitmap;
     private Boolean mShowButton;
+    private Intent mGoToPhotoFeedActivity;
 
     // onCreate method for PhotoPickerActivity class
     @Override
@@ -57,48 +57,61 @@ public class PhotoPickerActivity extends AppCompatActivity {
         mImageResult = (ImageView) findViewById(R.id.photoView);
         mPostPicture = (Button) findViewById(R.id.postPictureButton);
         mShowButton = false;
+        mGoToPhotoFeedActivity = new Intent(this, PhotoFeedActivity.class);
 
+        // calling method to activate on click listeners for the buttons in this activity
         attachOnClickListener();
+
     }
 
+    // this method provides the logic for the camera's intent that comes back
+    // the image is built into a bitmap and displayed if possible
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK && requestCode == REQUEST_TAKE_PHOTO) {
-           // Image captured and set to the imageview at the bottom on PhotoPickerActivity
+
+            // Image captured and set to the imageview at the bottom on PhotoPickerActivity
             makeBitmap();
             changeButtonVisibility(mPostPicture);
 
         } else if (resultCode == RESULT_CANCELED) {
-            // User cancelled the image capture
+            // User cancelled the image capture, set info text to user cancled.
             Log.d(TAG, "onActivityResult: User canceled request");
             mInfo.setText(R.string.intent_canceled);
 
+            // error loading image sets info text image load error
         } else {
             Log.d(TAG, "onActivityResult: Image load error");
             mInfo.setText(R.string.image_load_error);
         }
     }
 
+    // this is my clicklistener method that will give the logic for the different buttons
     private void attachOnClickListener(){
+        // take photo button
         mTakePhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 dispatchTakePictureIntent();
             }
         });
 
+        // Post picture button
         mPostPicture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // need logic to give photo to new activity called PhotoFeedActivity
+                // needs logic to save the current photo to app to be viewed in photo feed activity
+
+                // initiates intent to go to photo feed activity to view posted photos
+                startActivity(mGoToPhotoFeedActivity);
             }
         });
 
+        // Select photo from phone gallery button
         mSelectFromGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // need logic to take mImageResult and put it into phone photo gallery
+                //needs logic to get photos from gallery and pull them into app
             }
         });
 
@@ -146,12 +159,15 @@ public class PhotoPickerActivity extends AppCompatActivity {
             }
         }
     }
-
+    // method that takes a picture from a file path and decodes it into a bitmap
+    // that bitmap is assigned to the member mImageResult to displayed in the imageview
     private void makeBitmap() {
         Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath);
         mImageResult.setImageBitmap(bitmap);
     }
 
+    // method that makes the button to post pictures only visible if there is a
+    // photo available to post.
     private void changeButtonVisibility(Button button) {
         if (mShowButton) {
             button.setVisibility(View.INVISIBLE);
