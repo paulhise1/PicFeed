@@ -64,7 +64,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
         mGalleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
         // hiding the post button until there is a picture to post
-        mImageResult.setVisibility(View.VISIBLE);
+        mPostPicture.setVisibility(View.INVISIBLE);
 
         // calling method to activate on click listeners for the buttons in this activity
         attachOnClickListener();
@@ -196,8 +196,8 @@ public class PhotoPickerActivity extends AppCompatActivity {
         button.setVisibility(View.VISIBLE);
     }
 
+    // Try catch block method to create the File where the photo should go
     private void createPhotoFile() {
-        // Try catch block to create the File where the photo should go
         mPhotoFile = null;
         try {
             mPhotoFile = createUniqueImageFile();
