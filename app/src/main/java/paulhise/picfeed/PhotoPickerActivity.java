@@ -27,10 +27,9 @@ public class PhotoPickerActivity extends AppCompatActivity {
     // assigning TAG for PhotoPickerActivity
     private static final String TAG = "PhotoPickerActivity";
 
-    // assigning a 'request code' int to request_take_photo
+    // assigning a 'request code' ints to activity for intents
     static final int REQUEST_TAKE_PHOTO = 1;
-
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int GALLERY = 2;
 
     // assigning member variables to PhotoPickerActivity class
     private String mCurrentPhotoPath;
@@ -40,9 +39,9 @@ public class PhotoPickerActivity extends AppCompatActivity {
     private Button mPostPicture;
     private Button mSelectFromGallery;
     private ImageView mImageResult;
-    private Bitmap mBitmap;
     private Boolean mShowButton;
     private Intent mGoToPhotoFeedActivity;
+    private Intent mGalleryIntent;
 
     // onCreate method for PhotoPickerActivity class
     @Override
@@ -58,6 +57,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
         mPostPicture = (Button) findViewById(R.id.postPictureButton);
         mShowButton = false;
         mGoToPhotoFeedActivity = new Intent(this, PhotoFeedActivity.class);
+        mGalleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
         // calling method to activate on click listeners for the buttons in this activity
         attachOnClickListener();
@@ -68,19 +68,25 @@ public class PhotoPickerActivity extends AppCompatActivity {
     // the image is built into a bitmap and displayed if possible
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK && requestCode == REQUEST_TAKE_PHOTO) {
+        if (resultCode == RESULT_OK){
 
-            // Image captured and set to the imageview at the bottom on PhotoPickerActivity
-            makeBitmap();
-            changeButtonVisibility(mPostPicture);
+            if (requestCode == REQUEST_TAKE_PHOTO) {
+                // Image captured and set to the imageview at the bottom on PhotoPickerActivity
+                makeBitmap();
+                changeButtonVisibility(mPostPicture);
+            } else if (resultCode == GALLERY) {
+                // User cancelled the image capture, set info text to user cancled.
+                Log.d(TAG, "onActivityResult: User canceled request");
+                mInfo.setText(R.string.intent_canceled);
+            }
 
         } else if (resultCode == RESULT_CANCELED) {
             // User cancelled the image capture, set info text to user cancled.
             Log.d(TAG, "onActivityResult: User canceled request");
             mInfo.setText(R.string.intent_canceled);
 
-            // error loading image sets info text image load error
         } else {
+            // error loading image sets info text image load error
             Log.d(TAG, "onActivityResult: Image load error");
             mInfo.setText(R.string.image_load_error);
         }
@@ -112,6 +118,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //needs logic to get photos from gallery and pull them into app
+                startActivityForResult(mGalleryIntent, GALLERY);
             }
         });
 
@@ -151,9 +158,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
-                        photoFile);
+                Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
