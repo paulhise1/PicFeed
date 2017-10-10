@@ -3,5 +3,5 @@
     <string name="title_activity_photo_picker">PhotoPickerActivity</string>
     <string name="image_load_error">Image failed to Load.</string>
     <string name="intent_canceled">Canceled by user.</string>
-
+    <string name="request_code_error">Request Code Invalid.</string>
 </resources>

@@ -19,7 +19,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 
 public class PhotoPickerActivity extends AppCompatActivity {
@@ -29,7 +31,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
 
     // assigning a 'request code' ints to activity for intents
     static final int REQUEST_TAKE_PHOTO = 1;
-    static final int GALLERY = 2;
+    static final int REQUEST_PHOTO_GALLERY = 2;
 
     // assigning member variables to PhotoPickerActivity class
     private String mCurrentPhotoPath;
@@ -41,6 +43,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
     private ImageView mImageResult;
     private Boolean mShowButton;
     private Intent mGoToPhotoFeedActivity;
+    private File mPhotoFile;
     private Intent mGalleryIntent;
 
     // onCreate method for PhotoPickerActivity class
@@ -49,15 +52,19 @@ public class PhotoPickerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo_picker);
 
+        // setting the member views for this activity class
         mInfo = (TextView) findViewById(R.id.info);
         mTakePhoto = (Button) findViewById(R.id.takePhotoButton);
         mSelectFromGallery = (Button) findViewById(R.id.selectFromGalleryButton);
         mUserImage = (ImageView) findViewById(R.id.userPicture);
         mImageResult = (ImageView) findViewById(R.id.photoView);
         mPostPicture = (Button) findViewById(R.id.postPictureButton);
-        mShowButton = false;
+
         mGoToPhotoFeedActivity = new Intent(this, PhotoFeedActivity.class);
         mGalleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+        // hiding the post button until there is a picture to post
+        mImageResult.setVisibility(View.VISIBLE);
 
         // calling method to activate on click listeners for the buttons in this activity
         attachOnClickListener();
@@ -68,17 +75,24 @@ public class PhotoPickerActivity extends AppCompatActivity {
     // the image is built into a bitmap and displayed if possible
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK){
+        super.onActivityResult(requestCode, resultCode, data);
 
+        if (resultCode == RESULT_OK){
             if (requestCode == REQUEST_TAKE_PHOTO) {
                 // Image captured and set to the imageview at the bottom on PhotoPickerActivity
                 makeBitmap();
                 changeButtonVisibility(mPostPicture);
-            } else if (resultCode == GALLERY) {
-                // User cancelled the image capture, set info text to user cancled.
-                Log.d(TAG, "onActivityResult: User canceled request");
-                mInfo.setText(R.string.intent_canceled);
-            }
+
+            } else if (requestCode == REQUEST_PHOTO_GALLERY) {
+                // intent to get a photo from gallery.
+                getPhotoFromGallery(data);
+                changeButtonVisibility(mPostPicture);
+
+            } else {
+                // error loading image sets info text image load error
+                Log.d(TAG, "onActivityResult: request code error");
+                mInfo.setText(R.string.request_code_error);
+                }
 
         } else if (resultCode == RESULT_CANCELED) {
             // User cancelled the image capture, set info text to user cancled.
@@ -118,52 +132,57 @@ public class PhotoPickerActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //needs logic to get photos from gallery and pull them into app
-                startActivityForResult(mGalleryIntent, GALLERY);
+                startActivityForResult(mGalleryIntent, REQUEST_PHOTO_GALLERY);
             }
         });
 
     }
 
     // provides unique file names for our images to be put into
-    private File createImageFile() throws IOException {
+    private File createUniqueImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());;
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
+        File file = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
 
         // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
+        mCurrentPhotoPath = file.getAbsolutePath();
+        return file;
     }
 
     // This activates the intent to take a picture with the camera device
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException e) {
-                String error = "Error: " + e.getMessage();
-                Log.d("FILE ERROR", error);
-                mInfo.setText(error);
-            }
+            createPhotoFile();
             // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", photoFile);
+            if (mPhotoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this, "com.example.android.fileprovider", mPhotoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
     }
+
+    // sets up input stream to be read from returning gallery intent
+    // takes the input string and makes a bitmap out of it
+    private void getPhotoFromGallery (Intent data) {
+        try {
+            InputStream stream = this.getContentResolver().openInputStream(data.getData());
+            Bitmap galleryPicture = BitmapFactory.decodeStream(stream);
+            mImageResult.setImageBitmap(galleryPicture);
+        } catch (FileNotFoundException e) {
+            mInfo.setText("Error: " + e.getMessage());
+        }
+    }
+
     // method that takes a picture from a file path and decodes it into a bitmap
     // that bitmap is assigned to the member mImageResult to displayed in the imageview
     private void makeBitmap() {
@@ -174,12 +193,18 @@ public class PhotoPickerActivity extends AppCompatActivity {
     // method that makes the button to post pictures only visible if there is a
     // photo available to post.
     private void changeButtonVisibility(Button button) {
-        if (mShowButton) {
-            button.setVisibility(View.INVISIBLE);
-            mShowButton = false;
-        } else {
-            button.setVisibility(View.VISIBLE);
-            mShowButton = true;
+        button.setVisibility(View.VISIBLE);
+    }
+
+    private void createPhotoFile() {
+        // Try catch block to create the File where the photo should go
+        mPhotoFile = null;
+        try {
+            mPhotoFile = createUniqueImageFile();
+        } catch (IOException e) {
+            String error = "Error: " + e.getMessage();
+            Log.d("FILE ERROR", error);
+            mInfo.setText(error);
         }
     }
 
