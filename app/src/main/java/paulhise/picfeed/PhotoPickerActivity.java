@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +46,8 @@ public class PhotoPickerActivity extends AppCompatActivity {
     private Intent mGoToPhotoFeedActivity;
     private File mPhotoFile;
     private Intent mGalleryIntent;
+    private String intentTest;
+    private Bitmap bmp;
 
     // onCreate method for PhotoPickerActivity class
     @Override
@@ -62,6 +65,27 @@ public class PhotoPickerActivity extends AppCompatActivity {
 
         mGoToPhotoFeedActivity = new Intent(this, PhotoFeedActivity.class);
         mGalleryIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+        // test to see if I can get intent extra from different activity
+//        String extraIdentifier = "intentString";
+//        intentTest = getIntent().getStringExtra(extraIdentifier);
+//        mInfo.setText(intentTest);
+
+        // get intent extra from NewUserSelfie activity to turn into a displayable user image
+        bmp = null;
+        String filename = getIntent().getStringExtra("image");
+        try {
+            FileInputStream is = this.openFileInput(filename);
+            bmp = BitmapFactory.decodeStream(is);
+            mUserImage.setImageBitmap(bmp);
+            is.close();
+
+        } catch (Exception e) {
+            String errorMessage = "Error: " + e.getMessage();
+            mInfo.setText(errorMessage);
+            Log.d(TAG, "onCreate: Create bitmap from intent extra error: ");
+        }
+
 
         // hiding the post button until there is a picture to post
         mPostPicture.setVisibility(View.INVISIBLE);
@@ -179,7 +203,8 @@ public class PhotoPickerActivity extends AppCompatActivity {
             Bitmap galleryPicture = BitmapFactory.decodeStream(stream);
             mImageResult.setImageBitmap(galleryPicture);
         } catch (FileNotFoundException e) {
-            mInfo.setText("Error: " + e.getMessage());
+            String errorMessage = "Error: " + e.getMessage();
+            mInfo.setText(errorMessage);
         }
     }
 

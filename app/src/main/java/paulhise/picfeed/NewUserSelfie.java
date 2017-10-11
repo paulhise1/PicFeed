@@ -1,5 +1,6 @@
 package paulhise.picfeed;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -17,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import org.w3c.dom.Text;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 
@@ -33,6 +35,7 @@ public class NewUserSelfie extends AppCompatActivity {
     private String mCurrentPhotoPath;
     private ImageView mSelfie;
     private Button mSetSelfie;
+    private Bitmap bmp;
 
 
     @Override
@@ -53,12 +56,26 @@ public class NewUserSelfie extends AppCompatActivity {
         attachOnClickListener();
     }
 
-    // take selfie photo button clicklistener
+    // buttton clickListeners
     private void attachOnClickListener() {
+
+        // take selfie photo button clicklistener
         mTakeSelfie.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//                String intentString = "testIntent";
+//                sendIntent(intentString);
                 dispatchTakePictureIntent();
+            }
+        });
+
+        // move userSelfie image to photoPickerActivity
+        mSetSelfie.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//                String intentString = "testIntent";
+//                sendIntent(intentString);
+                packageBitmapForIntent(bmp);
             }
         });
     }
@@ -95,6 +112,8 @@ public class NewUserSelfie extends AppCompatActivity {
                 String newSelfieButtonText = "Redo Selfie";
                 mTakeSelfie.setText(newSelfieButtonText);
                 mSetSelfie.setVisibility(View.VISIBLE);     //displays button to post selfie
+
+
 
             } else {
                 // error loading image sets info text image load error
@@ -146,8 +165,42 @@ public class NewUserSelfie extends AppCompatActivity {
     // method that takes a picture from a file path and decodes it into a bitmap
     // that bitmap is assigned to the member mImageResult to displayed in the imageview
     private void makeBitmap() {
-        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath);
-        mSelfie.setImageBitmap(bitmap);
+        bmp = BitmapFactory.decodeFile(mCurrentPhotoPath);
+        mSelfie.setImageBitmap(bmp);
+
     }
 
+    // intent to move to PhotoPickerActivity
+    private void goToPhotoPickerActivity(){
+        Intent toPhotoPicker = new Intent(this, PhotoPickerActivity.class);
+        startActivity(toPhotoPicker);
+    }
+
+    private void packageBitmapForIntent(Bitmap bmp) {
+        try {
+            // Write file to put Bitmap into
+            String filename = "userImageBitmap";
+            FileOutputStream stream = this.openFileOutput(filename, Context.MODE_PRIVATE);
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+
+            // Cleanup stream
+            stream.close();
+            bmp.recycle();
+
+            // intent to put bitmap into extra to send to PhotoPickerActivity
+            Intent sendBitmap = new Intent(this, PhotoPickerActivity.class);
+            sendBitmap.putExtra("image", filename);
+            startActivity(sendBitmap);
+        } catch (Exception e) {
+            mInfo.setText(TAG + "errror: " + e.getMessage());
+        }
+    }
+
+    // test intent to see if i can send a succesful string extra between activities.
+    // not being currently used
+    private void sendIntent (String s) {
+        Intent in1 = new Intent(this, PhotoPickerActivity.class);
+        in1.putExtra("intentString", s);
+        startActivity(in1);
+    }
 }
